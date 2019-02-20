@@ -4,6 +4,14 @@ import (
 	"github.com/hashicorp/consul/command/acl"
 	aclagent "github.com/hashicorp/consul/command/acl/agenttokens"
 	aclbootstrap "github.com/hashicorp/consul/command/acl/bootstrap"
+	aclidp "github.com/hashicorp/consul/command/acl/idp"
+	aclidpcreate "github.com/hashicorp/consul/command/acl/idp/create"
+	aclidpdelete "github.com/hashicorp/consul/command/acl/idp/delete"
+	aclidplist "github.com/hashicorp/consul/command/acl/idp/list"
+	aclidpread "github.com/hashicorp/consul/command/acl/idp/read"
+	aclidpupdate "github.com/hashicorp/consul/command/acl/idp/update"
+	acllogin "github.com/hashicorp/consul/command/acl/login"
+	acllogout "github.com/hashicorp/consul/command/acl/logout"
 	aclpolicy "github.com/hashicorp/consul/command/acl/policy"
 	aclpcreate "github.com/hashicorp/consul/command/acl/policy/create"
 	aclpdelete "github.com/hashicorp/consul/command/acl/policy/delete"
@@ -118,6 +126,14 @@ func init() {
 	Register("acl role read", func(ui cli.Ui) (cli.Command, error) { return aclrread.New(ui), nil })
 	Register("acl role update", func(ui cli.Ui) (cli.Command, error) { return aclrupdate.New(ui), nil })
 	Register("acl role delete", func(ui cli.Ui) (cli.Command, error) { return aclrdelete.New(ui), nil })
+	Register("acl idp", func(cli.Ui) (cli.Command, error) { return aclidp.New(), nil })
+	Register("acl idp create", func(ui cli.Ui) (cli.Command, error) { return aclidpcreate.New(ui), nil })
+	Register("acl idp list", func(ui cli.Ui) (cli.Command, error) { return aclidplist.New(ui), nil })
+	Register("acl idp read", func(ui cli.Ui) (cli.Command, error) { return aclidpread.New(ui), nil })
+	Register("acl idp update", func(ui cli.Ui) (cli.Command, error) { return aclidpupdate.New(ui), nil })
+	Register("acl idp delete", func(ui cli.Ui) (cli.Command, error) { return aclidpdelete.New(ui), nil })
+	Register("acl login", func(ui cli.Ui) (cli.Command, error) { return acllogin.New(ui), nil })
+	Register("acl logout", func(ui cli.Ui) (cli.Command, error) { return acllogout.New(ui), nil })
 	Register("agent", func(ui cli.Ui) (cli.Command, error) {
 		return agent.New(ui, rev, ver, verPre, verHuman, make(chan struct{})), nil
 	})

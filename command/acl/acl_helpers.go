@@ -29,7 +29,11 @@ func PrintToken(token *api.ACLToken, ui cli.Ui, showMeta bool) {
 	}
 	ui.Info(fmt.Sprintf("Roles:"))
 	for _, role := range token.Roles {
-		ui.Info(fmt.Sprintf("   %s - %s", role.ID, role.Name))
+		if role.BoundName == "" {
+			ui.Info(fmt.Sprintf("   %s - %s", role.ID, role.Name))
+		} else {
+			ui.Info(fmt.Sprintf("   %s", role.BoundName))
+		}
 	}
 	ui.Info(fmt.Sprintf("Service Identities:"))
 	for _, svcid := range token.ServiceIdentities {
@@ -65,7 +69,11 @@ func PrintTokenListEntry(token *api.ACLTokenListEntry, ui cli.Ui, showMeta bool)
 	}
 	ui.Info(fmt.Sprintf("Roles:"))
 	for _, role := range token.Roles {
-		ui.Info(fmt.Sprintf("   %s - %s", role.ID, role.Name))
+		if role.BoundName == "" {
+			ui.Info(fmt.Sprintf("   %s - %s", role.ID, role.Name))
+		} else {
+			ui.Info(fmt.Sprintf("   %s", role.BoundName))
+		}
 	}
 	ui.Info(fmt.Sprintf("Service Identities:"))
 	for _, svcid := range token.ServiceIdentities {
@@ -146,6 +154,42 @@ func PrintRoleListEntry(role *api.ACLRoleListEntry, ui cli.Ui, showMeta bool) {
 		} else {
 			ui.Info(fmt.Sprintf("   %s (Datacenters: all)", svcid.ServiceName))
 		}
+	}
+}
+
+func PrintIdentityProvider(idp *api.ACLIdentityProvider, ui cli.Ui, showMeta bool) {
+	ui.Info(fmt.Sprintf("Name:         %s", idp.Name))
+	ui.Info(fmt.Sprintf("Type:         %s", idp.Type))
+	ui.Info(fmt.Sprintf("Description:  %s", idp.Description))
+	if showMeta {
+		ui.Info(fmt.Sprintf("Create Index: %d", idp.CreateIndex))
+		ui.Info(fmt.Sprintf("Modify Index: %d", idp.ModifyIndex))
+	}
+	if idp.Type == "kubernetes" {
+		ui.Info(fmt.Sprintf("Kubernetes:"))
+		ui.Info(fmt.Sprintf("  Host:                 %s", idp.KubernetesHost))
+		ui.Info(fmt.Sprintf("  CA Cert:"))
+		if idp.KubernetesCACert != "" {
+			ui.Info(fmt.Sprintf("    %s", idp.KubernetesCACert))
+		}
+		ui.Info(fmt.Sprintf("  Service Account JWT:"))
+		if idp.KubernetesServiceAccountJWT != "" {
+			ui.Info(fmt.Sprintf("    %s", idp.KubernetesServiceAccountJWT))
+		}
+	}
+}
+
+func PrintIdentityProviderListEntry(idp *api.ACLIdentityProviderListEntry, ui cli.Ui, showMeta bool) {
+	ui.Info(fmt.Sprintf("%s:", idp.Name))
+	ui.Info(fmt.Sprintf("   Type:         %s", idp.Type))
+	ui.Info(fmt.Sprintf("   Description:  %s", idp.Description))
+	if showMeta {
+		ui.Info(fmt.Sprintf("   Create Index: %d", idp.CreateIndex))
+		ui.Info(fmt.Sprintf("   Modify Index: %d", idp.ModifyIndex))
+	}
+	if idp.Type == "kubernetes" {
+		ui.Info(fmt.Sprintf("Kubernetes:"))
+		ui.Info(fmt.Sprintf("  Host:                 %s", idp.KubernetesHost))
 	}
 }
 
