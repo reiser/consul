@@ -167,7 +167,7 @@ func PrintIdentityProvider(idp *api.ACLIdentityProvider, ui cli.Ui, showMeta boo
 	}
 	if idp.Type == "kubernetes" {
 		ui.Info(fmt.Sprintf("Kubernetes:"))
-		ui.Info(fmt.Sprintf("  Host:                 %s", idp.KubernetesHost))
+		ui.Info(fmt.Sprintf("  Host: %s", idp.KubernetesHost))
 		ui.Info(fmt.Sprintf("  CA Cert:"))
 		if idp.KubernetesCACert != "" {
 			ui.Info(fmt.Sprintf("    %s", idp.KubernetesCACert))
@@ -189,7 +189,26 @@ func PrintIdentityProviderListEntry(idp *api.ACLIdentityProviderListEntry, ui cl
 	}
 	if idp.Type == "kubernetes" {
 		ui.Info(fmt.Sprintf("Kubernetes:"))
-		ui.Info(fmt.Sprintf("  Host:                 %s", idp.KubernetesHost))
+		ui.Info(fmt.Sprintf("  Host: %s", idp.KubernetesHost))
+	}
+}
+
+func PrintRoleBindingRule(rule *api.ACLRoleBindingRule, ui cli.Ui, showMeta bool) {
+	ui.Info(fmt.Sprintf("ID:           %s", rule.ID))
+	ui.Info(fmt.Sprintf("IDPName:      %s", rule.IDPName))
+	ui.Info(fmt.Sprintf("Description:  %s", rule.Description))
+	ui.Info(fmt.Sprintf("RoleName:     %s", rule.RoleName))
+	ui.Info(fmt.Sprintf("MustExist:    %v", rule.MustExist))
+	if showMeta {
+		ui.Info(fmt.Sprintf("Create Index: %d", rule.CreateIndex))
+		ui.Info(fmt.Sprintf("Modify Index: %d", rule.ModifyIndex))
+	}
+	ui.Info(fmt.Sprintf("Match:"))
+	for i, match := range rule.Match {
+		ui.Info(fmt.Sprintf("  %d:", i))
+		for _, sel := range match.Selector {
+			ui.Info(fmt.Sprintf("     %s", sel))
+		}
 	}
 }
 
@@ -353,6 +372,34 @@ func GetRoleIDByName(client *api.Client, name string) (string, error) {
 	return "", fmt.Errorf("No such role with name %s", name)
 }
 
+func GetRoleBindingRuleIDFromPartial(client *api.Client, partialID string) (string, error) {
+	// the full UUID string was given
+	if len(partialID) == 36 {
+		return partialID, nil
+	}
+
+	rules, _, err := client.ACL().RoleBindingRuleList("", nil)
+	if err != nil {
+		return "", err
+	}
+
+	ruleID := ""
+	for _, rule := range rules {
+		if strings.HasPrefix(rule.ID, partialID) {
+			if ruleID != "" {
+				return "", fmt.Errorf("Partial rule ID is not unique")
+			}
+			ruleID = rule.ID
+		}
+	}
+
+	if ruleID == "" {
+		return "", fmt.Errorf("No such rule ID with prefix: %s", partialID)
+	}
+
+	return ruleID, nil
+}
+
 func ExtractServiceIdentities(serviceIdents []string) ([]*api.ACLServiceIdentity, error) {
 	var out []*api.ACLServiceIdentity
 	for _, svcidRaw := range serviceIdents {
@@ -372,4 +419,28 @@ func ExtractServiceIdentities(serviceIdents []string) ([]*api.ACLServiceIdentity
 		}
 	}
 	return out, nil
+}
+
+func ParseRoleBindingRuleMatchSelectors(matchSelectors []string) ([]*api.ACLRoleBindingRuleMatch, error) {
+	var found []*api.ACLRoleBindingRuleMatch
+
+	for _, rawMatch := range matchSelectors {
+		rawSelectors := strings.Split(rawMatch, ",")
+		if len(rawSelectors) == 0 {
+			return nil, fmt.Errorf("Invalid match selector: %s", rawMatch)
+		}
+
+		var m api.ACLRoleBindingRuleMatch
+		for _, rawSelector := range rawSelectors {
+			selector := strings.TrimSpace(rawSelector)
+			if selector == "" {
+				return nil, fmt.Errorf("Invalid match selector: %s", rawMatch)
+			}
+			m.Selector = append(m.Selector, selector)
+		}
+
+		found = append(found, &m)
+	}
+
+	return found, nil
 }

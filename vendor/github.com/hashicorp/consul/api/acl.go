@@ -1034,8 +1034,11 @@ func (a *ACL) RoleBindingRuleRead(roleBindingRuleID string, q *QueryOptions) (*A
 }
 
 // RoleBindingRuleList retrieves a listing of all role binding rules.
-func (a *ACL) RoleBindingRuleList(q *QueryOptions) ([]*ACLRoleBindingRule, *QueryMeta, error) {
+func (a *ACL) RoleBindingRuleList(idpName string, q *QueryOptions) ([]*ACLRoleBindingRule, *QueryMeta, error) {
 	r := a.c.newRequest("GET", "/v1/acl/rolebindingrules")
+	if idpName != "" {
+		r.params.Set("idp", idpName)
+	}
 	r.setQueryOptions(q)
 	rtt, resp, err := requireOK(a.c.doRequest(r))
 	if err != nil {

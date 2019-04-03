@@ -717,6 +717,8 @@ func (s *HTTPServer) ACLRoleBindingRuleList(resp http.ResponseWriter, req *http.
 		args.Datacenter = s.agent.config.Datacenter
 	}
 
+	args.IDPName = req.URL.Query().Get("idp")
+
 	var out structs.ACLRoleBindingRuleListResponse
 	defer setMeta(resp, &out.QueryMeta)
 	if err := s.agent.RPC("ACL.RoleBindingRuleList", &args, &out); err != nil {
